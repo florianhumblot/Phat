@@ -14,31 +14,42 @@ int SDDevice::init_card() {
     SS.set(false);
     hwlib::wait_ms(20);
     SS.set(false);
+	hwlib::wait_ms(1);
     execute_command(CMD_GO_IDLE_STATE, 0x00000000, false);
     readBytes(8, true, buffer.begin());
     print_binary(8, buffer.begin(), false);
     hwlib::wait_ms(5);
     SS.set(true);
+	hwlib::wait_ms(1);
     wait_bytes(1);
     SS.set(false);
-    execute_command(CMD_SEND_IF_COND, 0x40100000, false);
+	hwlib::wait_ms(1);
+    execute_command(CMD_SEND_IF_COND, 0x000001AA, false);
     readBytes(8, true, buffer.begin());
     print_binary(8, buffer.begin(), false);
     SS.set(true);
+	hwlib::wait_ms(1);
     wait_bytes(1);
-    SS.set(false);
-    execute_command(CMD_READ_OCR, 0x0000000, false);
-    readBytes(8, true, buffer.begin());
-    print_binary(8, buffer.begin(), false);
-    SS.set(true);
-    wait_bytes(1);
-    SS.set(false);
-    execute_command(ACMD_SD_SEND_OP_COND, 0x40000000, true);
-    readBytes(8, true, buffer.begin());
-    print_binary(8, buffer.begin(), false);
-    SS.set(true);
-    wait_bytes(1);
-    
+	do{
+		SS.set(false);
+		hwlib::wait_ms(1);
+		execute_command(CMD_APP_CMD, 0x0, false);
+		readBytes(8, true, buffer.begin());
+		print_binary(8, buffer.begin(), false);
+		execute_command(ACMD_SD_SEND_OP_COND, 0x40000000, false);
+		readBytes(8, true, buffer.begin());
+		print_binary(8, buffer.begin(), false);
+		SS.set(true);
+		hwlib::wait_ms(1);
+	} while ( buffer[0] != 0x0);
+	wait_bytes(1);
+	SS.set(false);
+	hwlib::wait_ms(1);
+	execute_command(CMD_READ_OCR, 0x0000000, false);
+	readBytes(8, true, buffer.begin());
+	print_binary(8, buffer.begin(), false);
+	SS.set(true);
+	hwlib::wait_ms(1);
 
     return 0;
 }
@@ -92,14 +103,14 @@ void SDDevice::readBytes(uint8_t amount, bool sendOnes, uint8_t *buffer) {
 
 void SDDevice::print_binary(uint8_t size, uint8_t *data, bool command = false) {
     if (command) {
-        hwlib::cout << hwlib::setw(8) << hwlib::setfill(' ') << "COMMAND: ";
+        hwlib::cout << hwlib::setw(8) << hwlib::setfill(' ') << "COMMAND(CMD" << hwlib::dec << +(data[0] & ~(1UL << 6)) <<"): ";
     } else {
         hwlib::cout << hwlib::setw(9) << hwlib::setfill(' ') << "DATA: ";
     }
 
 
     for (uint8_t i = 0; i < size; i++) {
-        hwlib::cout << hwlib::setw(8) << hwlib::setfill('0') << hwlib::bin << +data[i] << " ";
+        hwlib::cout << hwlib::setw(2) << hwlib::setfill('0') << hwlib::hex << "0x" << +data[i] << " ";
     }
     hwlib::cout << hwlib::endl << hwlib::endl;
 }
