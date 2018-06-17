@@ -1,0 +1,12 @@
+*.c
+*.o
+*.bin
+*.elf
+*.ld
+*.map
+*.sln
+*.filters
+*.user
+*.vcxproj
+/Debug
+/.vs
