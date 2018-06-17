@@ -95,6 +95,8 @@ private:
 
         return CRC;
     }
+
+	void print_text(uint16_t size, uint8_t *data);
 public:
     SDDevice(hwlib::pin_out &MOSI, hwlib::pin_out &SS,
              hwlib::pin_out &SCLK, hwlib::pin_in &MISO);

@@ -49,6 +49,22 @@ int SDDevice::init_card() {
 	readBytes(8, true, buffer.begin());
 	print_binary(8, buffer.begin(), false);
 	SS.set(true);
+	hwlib::wait_ms(5);
+	SS.set(false);
+	std::array<uint8_t, 512> block = {};
+	uint32_t address = 0;
+	char test;
+	do {
+		execute_command(CMD_READ_SINGLE_BLOCK, address, false);
+		readBytes(255, true, block.begin());
+		readBytes(255, true, block.begin() + 255);
+		print_text(512, block.begin());
+		address += 512;
+		//wait for my command to continue
+		hwlib::cin >> test;
+	} while (address < 500000);
+	
+
 	hwlib::wait_ms(1);
 
     return 0;
@@ -81,6 +97,23 @@ int SDDevice::execute_command(SDDevice::SupportedCommands command, uint32_t argu
     return 0;
 }
 
+
+void SDDevice::print_text(uint16_t size, uint8_t * data)
+{
+	hwlib::cout << "The text: " << hwlib::endl;
+	for (uint16_t i = 0; i < size ; i += 8) {
+		hwlib::cout << "Hex: "; 
+		for (uint8_t j = 0; j < 8; j++) {
+			hwlib::cout << "0x" << hwlib::hex << hwlib::setw(2) << hwlib::setfill('0') << +data[i+j] << " ";
+		}
+		hwlib::cout << "\tChar value: ";
+		for (uint8_t j = 0; j < 8; j++) {
+			hwlib::cout << (char)data[i+j] << " ";
+		}
+		hwlib::cout << hwlib::endl;
+	}
+	hwlib::cout << hwlib::endl << hwlib::endl;
+}
 
 SDDevice::SDDevice(hwlib::pin_out &MOSI, hwlib::pin_out &SS,
                    hwlib::pin_out &SCLK, hwlib::pin_in &MISO)
