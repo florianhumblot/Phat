@@ -9,10 +9,10 @@
 #############################################################################
 
 # source files in this project (main.cpp is automatically assumed)
-SOURCES := SDDevice.cpp Partition.cpp MasterBootRecord.cpp BootSector.cpp FAT_ROOT_DIR.cpp
+SOURCES := SDDevice.cpp Partition.cpp MasterBootRecord.cpp BootSector.cpp DirectoryEntry.cpp
 
 # header files in this project
-HEADERS := SDDevice.hpp Partition.hpp MasterBootRecord.hpp BootSector.hpp FAT_ROOT_DIR.hpp
+HEADERS := SDDevice.hpp Partition.hpp MasterBootRecord.hpp BootSector.hpp DirectoryEntry.hpp
 
 # other places to look for files for this project
 SEARCH  := 

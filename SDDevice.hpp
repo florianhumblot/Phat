@@ -101,7 +101,6 @@ private:
 	void print_text( uint16_t size, uint8_t *data, uint32_t address );
 	void readBlock( std::array<uint8_t, 512> & block, uint32_t address );
 	void printBlock( std::array<uint8_t, 512> & block, uint32_t address );
-	
 
 public:
 	SDDevice( hwlib::pin_out &MOSI, hwlib::pin_out &SS,
@@ -112,6 +111,9 @@ public:
 	void print_shifted_value( uint32_t arguments );
 
 	void wait_bytes( uint_fast8_t wait_amount );
+
+	int getDirectoryListing();
+	void printTextFile( uint32_t address, uint32_t size );
 };
 
 

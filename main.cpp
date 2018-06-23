@@ -21,6 +21,8 @@ int main()
 	SDDevice SDCard(MOSI, SS, SCLK, MISO);
 
 	SDCard.init_card();
-
+	hwlib::cout << "wut" << hwlib::endl;
+	SDCard.getDirectoryListing();
+	hwlib::cout << "M0" << hwlib::endl;
 	return 0;
 }
