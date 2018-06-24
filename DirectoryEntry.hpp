@@ -15,6 +15,7 @@ private:
 	uint16_t UpdateDate;
 	uint32_t FirstLogicalCluster;
 	uint32_t FileSize;
+	bool LFN;
 
 public:
 	DirectoryEntry();
@@ -30,20 +31,28 @@ public:
 	bool isFile() {
 		return FAT_ATTR_TYPE == 32;
 	}
+
+	void print_table_headers();
+	
+
 	friend hwlib::ostream & operator<< ( hwlib::ostream & stream, DirectoryEntry DE ) {
 		stream << hwlib::dec;
-		stream << "Directory: " << DE.FileName << "\n";
-		stream << "Extention: " << DE.Extention << "\n";
-		stream << "attributes: " << DE.attributes << "\n";
-		stream << "FAT_ATTR_TYPE: " << DE.FAT_ATTR_TYPE << "\n";
-		stream << "CreatedTime10ms: " << DE.CreatedTime10ms << "\n";
-		stream << "CreatedTime: " << ( ( DE.CreatedTime & 0x7800 ) >> 11 ) << ':' << ( ( DE.CreatedTime & 0x7E0 ) >> 5 ) << ':' << ( DE.CreatedTime & 0x1f ) << "\n";
-		stream << "CreatedDate: " << ( DE.CreatedDate & 0x1f ) << '-' << ( ( DE.CreatedDate & 0x1E0 ) >> 5 ) << '-' << ( ( ( DE.CreatedDate & 0xFE00 ) >> 9 ) + 1980 ) << "\n";
-		stream << "AccessDate: " << ( DE.AccessDate & 0x1f ) << '-' << ( ( DE.AccessDate & 0x1E0 ) >> 5 ) << '-' << ( ( ( DE.AccessDate & 0xFE00 ) >> 9 ) + 1980 ) << "\n";
-		stream << "UpdateTime: " << ( ( DE.UpdateTime & 0x7800 ) >> 11 ) << ':' << ( ( DE.UpdateTime & 0x7E0 ) >> 5 ) << ':' << ( DE.UpdateTime & 0x1f ) << "\n";
-		stream << "UpdateDate: " << ( DE.UpdateDate & 0x1f ) << '-' << ( ( DE.UpdateDate & 0x1E0 ) >> 5 ) << '-' << ( ( ( DE.UpdateDate & 0xFE00 ) >> 9 ) + 1980 ) << "\n";
-		stream << "FirstLogicalCluster: " << DE.FirstLogicalCluster << "\n";
-		stream << "FileSize: " << DE.FileSize << "\n";
+		hwlib::string <22> Pad = "";
+		for ( int8_t i = 21; ( i - ( DE.FileName.length() + DE.Extention.length() ) ) > 0; i-- ) {
+			Pad.append( ' ' );
+		}
+		if ( DE.LFN ) {
+			stream << '/' << DE.FileName;
+		} else {
+			stream << '/' << DE.FileName << '.' << DE.Extention << Pad;
+		}
+		
+		stream << (( DE.FAT_ATTR_TYPE == 32 ) ? "File  " : "Folder") << "\t\t\t";
+		stream << ( DE.CreatedDate & 0x1f ) << '-' << ( ( DE.CreatedDate & 0x1E0 ) >> 5 ) << '-' << ( ( ( DE.CreatedDate & 0xFE00 ) >> 9 ) + 1980 ) << " " ;
+		stream << ( ( DE.CreatedTime & 0xF800 ) >> 11 ) << ':' << ( ( DE.CreatedTime & 0x7E0 ) >> 5 ) << ':' << ( DE.CreatedTime & 0x1f ) << " ";
+		stream << "  " << ( DE.UpdateDate & 0x1f ) << '-' << ( ( DE.UpdateDate & 0x1E0 ) >> 5 ) << '-' << ( ( ( DE.UpdateDate & 0xFE00 ) >> 9 ) + 1980 ) << " ";
+		stream << ( ( DE.UpdateTime & 0xF800 ) >> 11 ) << ':' << ( ( DE.UpdateTime & 0x7E0 ) >> 5 ) << ':' << ( DE.UpdateTime & 0x1f ) << " \t  ";
+		stream << ( DE.FileSize / 1024 ) << "KB" << " ";
 		return stream;
 	}
 };

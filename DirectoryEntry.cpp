@@ -5,6 +5,7 @@
 DirectoryEntry::DirectoryEntry() {}
 
 DirectoryEntry::DirectoryEntry( uint8_t data[32] ) {
+	LFN = false;
 	FileName = "";
 	FileName.append( data[0] );
 	FileName.append( data[1] );
@@ -30,6 +31,7 @@ DirectoryEntry::DirectoryEntry( uint8_t data[32] ) {
 }
 
 DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn ){
+	LFN = true;
 	FileName = lfn;
 	Extention = "";
 	Extention.append( data[8] );
@@ -44,6 +46,15 @@ DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn ){
 	UpdateDate = ( data[25] << 8 ) + data[24];
 	FirstLogicalCluster = ( data[21] << 24 ) + ( data[20] << 16 ) + ( data[27] << 8 ) + data[26];
 	FileSize = ( data[31] << 24 ) + ( data[30] << 16 ) + ( data[29] << 8 ) + data[28];
+}
+void DirectoryEntry::print_table_headers() {
+	hwlib::cout << hwlib::setw( 22 ) << hwlib::setfill( ' ' );
+	hwlib::cout << "|- - - filename - - -|";
+	hwlib::cout << "|- - - - type - - - -|";
+	hwlib::cout << "|- - -created at- - -|";
+	hwlib::cout << "|- - -updated at- - -|";
+	hwlib::cout << "|- - - filesize - - -|";
+	hwlib::cout << hwlib::endl;
 }
 
 

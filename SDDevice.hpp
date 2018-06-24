@@ -9,6 +9,7 @@
 #include "MasterBootRecord.hpp"
 #include "Partition.hpp"
 #include "BootSector.hpp"
+#include "DirectoryEntry.hpp"
 #include <array>
 
 class SDDevice {
@@ -81,7 +82,8 @@ private:
 			}
 		}
 	}
-
+	std::array<DirectoryEntry, 100> directoryListing;
+	uint16_t amount_of_directories = 0;
 	// adds a message byte to the current CRC-7 to get a the new CRC-7
 	uint8_t CRCAdd( uint8_t CRC, uint8_t message_byte ) {
 		return CRCTable[( CRC << 1 ) ^ message_byte];
@@ -101,7 +103,10 @@ private:
 	void print_text( uint16_t size, uint8_t *data, uint32_t address );
 	void readBlock( std::array<uint8_t, 512> & block, uint32_t address );
 	void printBlock( std::array<uint8_t, 512> & block, uint32_t address );
-
+	uint8_t currentDirectoryIndex = 0;
+	void debug_block( uint16_t size, uint8_t * data );
+	uint32_t processed_addresses[100];
+	bool addressHasBeenProcessedAlready( uint32_t address );
 public:
 	SDDevice( hwlib::pin_out &MOSI, hwlib::pin_out &SS,
 			  hwlib::pin_out &SCLK, hwlib::pin_in &MISO );
@@ -112,7 +117,7 @@ public:
 
 	void wait_bytes( uint_fast8_t wait_amount );
 
-	int getDirectoryListing();
+	int getDirectoryListing( uint8_t filenumber = 0);
 	void printTextFile( uint32_t address, uint32_t size );
 };
 

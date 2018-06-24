@@ -21,8 +21,13 @@ int main()
 	SDDevice SDCard(MOSI, SS, SCLK, MISO);
 
 	SDCard.init_card();
-	hwlib::cout << "wut" << hwlib::endl;
 	SDCard.getDirectoryListing();
-	hwlib::cout << "M0" << hwlib::endl;
+	for ( ;; ) {
+		hwlib::cout << "What folder or file would you like to open? (Select by typing the number to the left of the entry)" << hwlib::endl;
+		hwlib::cout << "CAUTION: by selecting a file, the file will be opened and printed." << hwlib::endl;
+		char temp;
+		hwlib::cin >> temp;
+		SDCard.getDirectoryListing( temp - '0' );
+	}
 	return 0;
 }
