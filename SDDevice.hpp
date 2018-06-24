@@ -19,6 +19,11 @@ private:
 	hwlib::spi_bus_bit_banged_sclk_mosi_miso spi_bus;
 	MasterBootRecord MBR;
 	BootSector BPB;
+	uint8_t currentDirectoryIndex = 0;
+	std::array<uint8_t, 8> data;
+	uint8_t CRCTable[256];
+	std::array<DirectoryEntry, 100> directoryListing;
+	uint16_t amount_of_directories = 0;
 	enum SupportedCommands : uint8_t {
 		CMD_GO_IDLE_STATE = 0,
 		CMD_SEND_OP_COND = 1,
@@ -49,7 +54,7 @@ private:
 		ACMD_SET_CLR_CARD_DETECT = 42,
 		ACMD_SEND_SCR = 51,
 	};
-	std::array<uint8_t, 8> data;
+
 	template <unsigned int size>
 	bool all_values( std::array<uint8_t, size> data, uint8_t value ) {
 		for ( unsigned int i = 0; i < size; i++ ) {
@@ -66,8 +71,6 @@ private:
 	}
 	void readBytes( uint8_t amount, bool sendOnes, uint8_t *buffer );
 	void print_binary( uint8_t size, uint8_t *data, bool command );
-	uint8_t CRCTable[256];
-
 	void GenerateCRCTable() {
 		int i, j;
 		uint8_t CRCPoly = 0x89;  // the value of our CRC-7 polynomial
@@ -82,13 +85,10 @@ private:
 			}
 		}
 	}
-	std::array<DirectoryEntry, 100> directoryListing;
-	uint16_t amount_of_directories = 0;
 	// adds a message byte to the current CRC-7 to get a the new CRC-7
 	uint8_t CRCAdd( uint8_t CRC, uint8_t message_byte ) {
 		return CRCTable[( CRC << 1 ) ^ message_byte];
 	}
-
 	// returns the CRC-7 for a message of "length" bytes
 	uint8_t getCRC( uint8_t message[], int length ) {
 		int i;
@@ -99,26 +99,23 @@ private:
 
 		return CRC;
 	}
-
 	void print_text( uint16_t size, uint8_t *data, uint32_t address );
 	void readBlock( std::array<uint8_t, 512> & block, uint32_t address );
 	void printBlock( std::array<uint8_t, 512> & block, uint32_t address );
-	uint8_t currentDirectoryIndex = 0;
 	void debug_block( uint16_t size, uint8_t * data );
-	uint32_t processed_addresses[100];
-	bool addressHasBeenProcessedAlready( uint32_t address );
+	int execute_command( SDDevice::SupportedCommands command, uint32_t arguments, bool isAcmd = 0 );
+	void print_shifted_value( uint32_t arguments );
+	void wait_bytes( uint_fast8_t wait_amount );
 public:
 	SDDevice( hwlib::pin_out &MOSI, hwlib::pin_out &SS,
 			  hwlib::pin_out &SCLK, hwlib::pin_in &MISO );
 	int init_card();
-	int execute_command( SDDevice::SupportedCommands command, uint32_t arguments, bool isAcmd = 0 );
-
-	void print_shifted_value( uint32_t arguments );
-
-	void wait_bytes( uint_fast8_t wait_amount );
-
-	int getDirectoryListing( uint8_t filenumber = 0);
+	int getDirectoryListing( uint8_t filenumber = 0 );
 	void printTextFile( uint32_t address, uint32_t size );
+	void generateDirectoryListing( uint16_t parent = 0 );
+
+	void printDirectoryListing( uint16_t ofDirectory = 0);
+	bool filenumberIsADirectory( uint16_t filenumber );
 };
 
 

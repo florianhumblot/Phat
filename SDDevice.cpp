@@ -13,7 +13,6 @@
 int SDDevice::init_card() {
 	std::array<uint8_t, 32> buffer = {};
 	GenerateCRCTable();
-	for ( auto & i : processed_addresses ) { i = 0; }
 	SS.set( true );
 	wait_bytes( 10 );
 	SS.set( false );
@@ -110,129 +109,129 @@ void SDDevice::wait_bytes( uint_fast8_t wait_amount = 1 ) {
 	readBytes( wait_amount, true, nullptr );
 }
 
-int SDDevice::getDirectoryListing( uint8_t filenumber ) {
-	hwlib::cout << "Getting Directory listing! " << hwlib::endl;
-	std::array<uint8_t, 512> block;
-	uint32_t address = 0x00;
-	hwlib::string<255> lfn = "";
-	bool finishedReading = false;
-	if ( filenumber == 0 ) {
-		address = BPB.GetRootDirAddress();
-	} else {
-		address = BPB.GetFirstSectorForCluster( directoryListing[filenumber].getFirstLogicalCluster() );
-		if ( directoryListing[filenumber].isFile() ) {
-			//print the file and return;
-			printTextFile(address, directoryListing[filenumber].getFileSize());
-			getDirectoryListing();
-			return 0;
-		}
-		
-	}
-
-	bool readingLFN = false;
-	while ( finishedReading == false && currentDirectoryIndex <= 100 && addressHasBeenProcessedAlready( address ) == false) {
-		SS.set( false );
-		readBlock( block, address );
-
-		SS.set( true );
-		for ( uint_fast8_t i = 0; i < 16; i++ ) {
-			if ( filenumber != 0 ) {
-				//hwlib::cout << "Reading entry number: " << +(i*36) << hwlib::endl;
-				//hwlib::cout << "Attr type:" << block[( 36 * i ) + 11] << hwlib::endl;
-			}
-			if ( block[( 32 * i )] == 0x00 &&
-				 block[( 32 * i ) + 1] == 0x00 &&
-				 block[( 32 * i ) + 2] == 0x00 &&
-				 block[( 32 * i ) + 3] == 0x00 &&
-				 block[( 32 * i ) + 4] == 0x00 &&
-				 block[( 32 * i ) + 5] == 0x00 &&
-				 block[( 32 * i ) + 6] == 0x00 &&
-				 block[( 32 * i ) + 7] == 0x00
-				 ) {
-				finishedReading = true;
-				break;
-			}
-			if ( block[( 32 * i ) + 11] == 15 ) {
-				//hwlib::cout << "Reading LFN: true" << hwlib::endl;
-				readingLFN = true;
-
-				uint8_t AmountOfLFN = block[( 32 * i )] & 0x3F;
-				for ( uint8_t j = AmountOfLFN - 1; j > 0; j-- ) {
-					//this is a LFN entry;
-					//Get the first part of the (long) name
-					lfn.append( block[( 32 * ( i + j ) ) + 1] );
-					lfn.append( block[( 32 * ( i + j ) ) + 3] );
-					lfn.append( block[( 32 * ( i + j ) ) + 5] );
-					lfn.append( block[( 32 * ( i + j ) ) + 7] );
-					lfn.append( block[( 32 * ( i + j ) ) + 9] );
-					//Get the second part of the (long) name
-					lfn.append( block[( 32 * ( i + j ) ) + 14] );
-					lfn.append( block[( 32 * ( i + j ) ) + 16] );
-					lfn.append( block[( 32 * ( i + j ) ) + 18] );
-					lfn.append( block[( 32 * ( i + j ) ) + 20] );
-					lfn.append( block[( 32 * ( i + j ) ) + 22] );
-					lfn.append( block[( 32 * ( i + j ) ) + 24] );
-					// Get the last part of the (long) name
-					lfn.append( block[( 32 * ( i + j ) ) + 28] );
-					lfn.append( block[( 32 * ( i + j ) ) + 30] );
-					
-				}
-				
-				//this is a LFN entry;
-				//Get the first part of the (long) name
-				lfn.append( block[( 32 * i ) + 1] );
-				lfn.append( block[( 32 * i ) + 3] );
-				lfn.append( block[( 32 * i ) + 5] );
-				lfn.append( block[( 32 * i ) + 7] );
-				lfn.append( block[( 32 * i) + 9] );
-				//Get the second part of the (long) name
-				lfn.append( block[( 32 * i) + 14] );
-				lfn.append( block[( 32 * i) + 16] );
-				lfn.append( block[( 32 * i) + 18] );
-				lfn.append( block[( 32 * i) + 20] );
-				lfn.append( block[( 32 * i) + 22] );
-				lfn.append( block[( 32 * i) + 24] );
-				// Get the last part of the (long) name
-				lfn.append( block[( 32 * i) + 28] );
-				lfn.append( block[( 32 * i) + 30] );
-
-				//Skip the LFN blocks;
-				i += AmountOfLFN - 1;
-			}
-			if ( block[( 32 * i ) + 11] == 16 || block[( 32 * i ) + 11] == 32 ) {
-				// We found the directory entry
-				uint8_t data_[32];
-				for ( uint_fast8_t j = 0; j < 32; j++ ) {
-					data_[j] = block[( 32 * i ) + j];
-				}
-				if ( readingLFN ) {
-					readingLFN = false;
-					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn );
-					lfn = "";
-				} else {
-					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_ );
-				}
-				currentDirectoryIndex++;
-			} else if ( block[( 32 * i ) + 11] == 22 ) {
-				readingLFN = false;
-				lfn = "";
-			}
-		}
-		//Jump to the next block;
-		address++;
-	}
-	directoryListing[0].print_table_headers();
-	uint16_t startIndex = 0;
-	if ( filenumber != 0 ) {
-		startIndex = filenumber + 1;
-	}
-	for ( uint16_t i = startIndex; i < currentDirectoryIndex; i++ ) {
-		hwlib::cout << i << ' ' << directoryListing[i] << hwlib::endl;
-
-	}
-	return 0;
-
-}
+//int SDDevice::getDirectoryListing( uint8_t filenumber ) {
+//	hwlib::cout << "Getting Directory listing! " << hwlib::endl;
+//	std::array<uint8_t, 512> block;
+//	uint32_t address = 0x00;
+//	hwlib::string<255> lfn = "";
+//	bool finishedReading = false;
+//	if ( filenumber == 0 ) {
+//		address = BPB.GetRootDirAddress();
+//	} else {
+//		address = BPB.GetFirstSectorForCluster( directoryListing[filenumber].getFirstLogicalCluster() );
+//		if ( directoryListing[filenumber].isFile() ) {
+//			//print the file and return;
+//			printTextFile( address, directoryListing[filenumber].getFileSize() );
+//			getDirectoryListing();
+//			return 0;
+//		}
+//
+//	}
+//
+//	bool readingLFN = false;
+//	while ( finishedReading == false && currentDirectoryIndex <= 100 && addressHasBeenProcessedAlready( address ) == false ) {
+//		SS.set( false );
+//		readBlock( block, address );
+//
+//		SS.set( true );
+//		for ( uint_fast8_t i = 0; i < 16; i++ ) {
+//			if ( filenumber != 0 ) {
+//				//hwlib::cout << "Reading entry number: " << +(i*36) << hwlib::endl;
+//				//hwlib::cout << "Attr type:" << block[( 36 * i ) + 11] << hwlib::endl;
+//			}
+//			if ( block[( 32 * i )] == 0x00 &&
+//				 block[( 32 * i ) + 1] == 0x00 &&
+//				 block[( 32 * i ) + 2] == 0x00 &&
+//				 block[( 32 * i ) + 3] == 0x00 &&
+//				 block[( 32 * i ) + 4] == 0x00 &&
+//				 block[( 32 * i ) + 5] == 0x00 &&
+//				 block[( 32 * i ) + 6] == 0x00 &&
+//				 block[( 32 * i ) + 7] == 0x00
+//				 ) {
+//				finishedReading = true;
+//				break;
+//			}
+//			if ( block[( 32 * i ) + 11] == 15 ) {
+//				//hwlib::cout << "Reading LFN: true" << hwlib::endl;
+//				readingLFN = true;
+//
+//				uint8_t AmountOfLFN = block[( 32 * i )] & 0x3F;
+//				for ( uint8_t j = AmountOfLFN - 1; j > 0; j-- ) {
+//					//this is a LFN entry;
+//					//Get the first part of the (long) name
+//					lfn.append( block[( 32 * ( i + j ) ) + 1] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 3] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 5] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 7] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 9] );
+//					//Get the second part of the (long) name
+//					lfn.append( block[( 32 * ( i + j ) ) + 14] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 16] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 18] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 20] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 22] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 24] );
+//					// Get the last part of the (long) name
+//					lfn.append( block[( 32 * ( i + j ) ) + 28] );
+//					lfn.append( block[( 32 * ( i + j ) ) + 30] );
+//
+//				}
+//
+//				//this is a LFN entry;
+//				//Get the first part of the (long) name
+//				lfn.append( block[( 32 * i ) + 1] );
+//				lfn.append( block[( 32 * i ) + 3] );
+//				lfn.append( block[( 32 * i ) + 5] );
+//				lfn.append( block[( 32 * i ) + 7] );
+//				lfn.append( block[( 32 * i ) + 9] );
+//				//Get the second part of the (long) name
+//				lfn.append( block[( 32 * i ) + 14] );
+//				lfn.append( block[( 32 * i ) + 16] );
+//				lfn.append( block[( 32 * i ) + 18] );
+//				lfn.append( block[( 32 * i ) + 20] );
+//				lfn.append( block[( 32 * i ) + 22] );
+//				lfn.append( block[( 32 * i ) + 24] );
+//				// Get the last part of the (long) name
+//				lfn.append( block[( 32 * i ) + 28] );
+//				lfn.append( block[( 32 * i ) + 30] );
+//
+//				//Skip the LFN blocks;
+//				i += AmountOfLFN - 1;
+//			}
+//			if ( block[( 32 * i ) + 11] == 16 || block[( 32 * i ) + 11] == 32 ) {
+//				// We found the directory entry
+//				uint8_t data_[32];
+//				for ( uint_fast8_t j = 0; j < 32; j++ ) {
+//					data_[j] = block[( 32 * i ) + j];
+//				}
+//				if ( readingLFN ) {
+//					readingLFN = false;
+//					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn );
+//					lfn = "";
+//				} else {
+//					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_ );
+//				}
+//				currentDirectoryIndex++;
+//			} else if ( block[( 32 * i ) + 11] == 22 ) {
+//				readingLFN = false;
+//				lfn = "";
+//			}
+//		}
+//		//Jump to the next block;
+//		address++;
+//	}
+//	directoryListing[0].print_table_headers();
+//	uint16_t startIndex = 0;
+//	if ( filenumber != 0 ) {
+//		startIndex = filenumber + 1;
+//	}
+//	for ( uint16_t i = startIndex; i < currentDirectoryIndex; i++ ) {
+//		hwlib::cout << i << ' ' << directoryListing[i] << hwlib::endl;
+//
+//	}
+//	return 0;
+//
+//}
 
 void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 	std::array<uint8_t, 512> block;
@@ -252,6 +251,8 @@ void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 
 	hwlib::cout << "\n\n---------------------------------------END TEXT FILE---------------------------------------" << hwlib::endl;
 }
+
+
 
 int SDDevice::execute_command( SDDevice::SupportedCommands command, uint32_t arguments, bool isAcmd ) {
 
@@ -375,11 +376,137 @@ void SDDevice::debug_block( uint16_t size, uint8_t * data ) {
 	hwlib::cout << hwlib::endl << hwlib::endl;
 }
 
-bool SDDevice::addressHasBeenProcessedAlready( uint32_t address ) {
-	for ( uint_fast8_t i = 0; i < 100; i++ ) {
-		if ( processed_addresses[i] == address ) {
-			return true;
+void SDDevice::generateDirectoryListing( uint16_t parent ) {
+	std::array<uint8_t, 512> block;
+	uint32_t address = 0x00;
+	hwlib::string <255> lfn = "";
+	bool finishedReading = false;
+	bool readingLFN = false;
+
+	if ( parent == 0 ) {
+		address = BPB.GetRootDirAddress();
+	} else {
+		address = BPB.GetFirstSectorForCluster( directoryListing[parent].getFirstLogicalCluster() );
+	}
+
+	while ( finishedReading == false && currentDirectoryIndex <= 100 ) {
+		SS.set( false );
+		readBlock( block, address );
+		SS.set( true );
+
+		for ( uint_fast8_t i = 0; i < 16; i++ ) {
+			// Check if the next 8 bytes are 0, if they are, the cluster contains no more data.
+			if ( block[( 32 * i )] == 0x00 &&
+				 block[( 32 * i ) + 1] == 0x00 &&
+				 block[( 32 * i ) + 2] == 0x00 &&
+				 block[( 32 * i ) + 3] == 0x00 &&
+				 block[( 32 * i ) + 4] == 0x00 &&
+				 block[( 32 * i ) + 5] == 0x00 &&
+				 block[( 32 * i ) + 6] == 0x00 &&
+				 block[( 32 * i ) + 7] == 0x00
+				 ) {
+				finishedReading = true;
+				break;
+			}
+
+			// if the 11th byte has a value of 15, this is a long file name entry.
+			if ( block[( 32 * i ) + 11] == 15 ) {
+				readingLFN = true;
+				// Check the amount of LFN entries.
+				uint8_t AmountOfLFN = block[( 32 * i )] & 0x3F;
+
+				// Get each entry, from the last part back to where we are now in the cluster
+				for ( uint8_t j = AmountOfLFN - 1; j > 0; j-- ) {
+					// Get the first part of the (long) name
+					lfn.append( block[( 32 * ( i + j ) ) + 1] );
+					lfn.append( block[( 32 * ( i + j ) ) + 3] );
+					lfn.append( block[( 32 * ( i + j ) ) + 5] );
+					lfn.append( block[( 32 * ( i + j ) ) + 7] );
+					lfn.append( block[( 32 * ( i + j ) ) + 9] );
+					// Get the second part of the (long) name
+					lfn.append( block[( 32 * ( i + j ) ) + 14] );
+					lfn.append( block[( 32 * ( i + j ) ) + 16] );
+					lfn.append( block[( 32 * ( i + j ) ) + 18] );
+					lfn.append( block[( 32 * ( i + j ) ) + 20] );
+					lfn.append( block[( 32 * ( i + j ) ) + 22] );
+					lfn.append( block[( 32 * ( i + j ) ) + 24] );
+					// Get the last part of the (long) name
+					lfn.append( block[( 32 * ( i + j ) ) + 28] );
+					lfn.append( block[( 32 * ( i + j ) ) + 30] );
+
+				}
+				// Get our current entry, which is always the last part of the entries
+				// Get the first part of the (long) name
+				lfn.append( block[( 32 * i ) + 1] );
+				lfn.append( block[( 32 * i ) + 3] );
+				lfn.append( block[( 32 * i ) + 5] );
+				lfn.append( block[( 32 * i ) + 7] );
+				lfn.append( block[( 32 * i ) + 9] );
+				// Get the second part of the (long) name
+				lfn.append( block[( 32 * i ) + 14] );
+				lfn.append( block[( 32 * i ) + 16] );
+				lfn.append( block[( 32 * i ) + 18] );
+				lfn.append( block[( 32 * i ) + 20] );
+				lfn.append( block[( 32 * i ) + 22] );
+				lfn.append( block[( 32 * i ) + 24] );
+				// Get the last part of the (long) name
+				lfn.append( block[( 32 * i ) + 28] );
+				lfn.append( block[( 32 * i ) + 30] );
+
+				// Skip the LFN blocks we just processed;
+				i += AmountOfLFN - 1;
+			}
+			// if the 11th byte has a value of 16, it is a directory, if it has a value of 32, it is a file.
+			// Both are considered files, so they're processed the same.
+			if ( block[( 32 * i ) + 11] == 16 || block[( 32 * i ) + 11] == 32 ) {
+				uint8_t data_[32];
+				for ( uint_fast8_t j = 0; j < 32; j++ ) {
+					data_[j] = block[( 32 * i ) + j];
+				}
+				if ( readingLFN ) {
+					readingLFN = false;
+					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn, parent );
+					lfn = "";
+				} else {
+					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, parent );
+				}
+				currentDirectoryIndex++;
+			}
+			// if the 11th byte has a value of 22, it is a system partition, no need to process it and so we skip it.
+			else if ( block[( 32 * i ) + 11] == 22 ) {
+
+				readingLFN = false;
+				lfn = "";
+			}
+		}
+		//We're done with the current block, go to the next.
+		address++;
+	}
+	hwlib::cout << "Generated root listing" << hwlib::endl;
+
+	for ( uint16_t i = parent + 1; i < currentDirectoryIndex + 1; i++ ) {
+		if ( !directoryListing[i].isFile() && directoryListing[i].isNotARealDir() ) {
+			//hwlib::cout << "Found a directory, generating now." << hwlib::endl;
+			hwlib::cout << directoryListing[i] << hwlib::endl;
+			generateDirectoryListing( i );
 		}
 	}
-	return false;
+	if ( parent == 0 ) {
+		for ( uint16_t i = 1; i < (currentDirectoryIndex + 1); i++ ) {
+			hwlib::cout << "I : " << i << "\n" << directoryListing[i]<<hwlib::endl;
+		}
+	}
+}
+
+void SDDevice::printDirectoryListing( uint16_t ofDirectory ) {
+	directoryListing[0].print_table_headers();
+	for ( uint16_t i = 0; i <= currentDirectoryIndex; i++ ) {
+		if ( directoryListing[i].getParentIndex() == ofDirectory ) {
+			hwlib::cout << "\t" << i << "\t\t" << directoryListing[i] << hwlib::endl;
+		}
+	}
+}
+
+bool SDDevice::filenumberIsADirectory( uint16_t filenumber ) {
+	return !directoryListing[filenumber].isFile();
 }

@@ -4,8 +4,9 @@
 
 DirectoryEntry::DirectoryEntry() {}
 
-DirectoryEntry::DirectoryEntry( uint8_t data[32] ) {
+DirectoryEntry::DirectoryEntry( uint8_t data[32], uint16_t parentListingIndex ) {
 	LFN = false;
+	parentListingIndex = parentListingIndex;
 	FileName = "";
 	FileName.append( data[0] );
 	FileName.append( data[1] );
@@ -30,8 +31,9 @@ DirectoryEntry::DirectoryEntry( uint8_t data[32] ) {
 	FileSize = ( data[31] << 24 ) + ( data[30] << 16 ) + ( data[29] << 8 ) + data[28];
 }
 
-DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn ){
+DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn, uint16_t parentListingIndex ){
 	LFN = true;
+	parentListingIndex = parentListingIndex;
 	FileName = lfn;
 	Extention = "";
 	Extention.append( data[8] );
@@ -49,6 +51,7 @@ DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn ){
 }
 void DirectoryEntry::print_table_headers() {
 	hwlib::cout << hwlib::setw( 22 ) << hwlib::setfill( ' ' );
+	hwlib::cout << "|- -  file_number - -|";
 	hwlib::cout << "|- - - filename - - -|";
 	hwlib::cout << "|- - - - type - - - -|";
 	hwlib::cout << "|- - -created at- - -|";
