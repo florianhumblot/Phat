@@ -16,12 +16,12 @@ private:
 	uint32_t FirstLogicalCluster;
 	uint32_t FileSize;
 	bool LFN;
-	uint16_t parentListingIndex;
+	uint8_t parent;
 
 public:
 	DirectoryEntry();
-	DirectoryEntry( uint8_t data[32], uint16_t parentListingIndex = 0 );
-	DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn, uint16_t parentListingIndex = 0 );
+	DirectoryEntry( uint8_t data[32], uint8_t parentListingIndex = 0 );
+	DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn, uint8_t parentListingIndex = 0 );
 	~DirectoryEntry();
 	uint32_t getFirstLogicalCluster() {
 		return FirstLogicalCluster;
@@ -34,11 +34,20 @@ public:
 	}
 
 	void print_table_headers();
-	uint16_t getParentIndex() {
-		return parentListingIndex;
+	uint8_t getParentIndex() {
+		return parent;
 	}
 	bool isNotARealDir() {
 		return ( FileName == ".." || FileName == "." );
+	}
+
+	bool isADirectory() {
+		if ( FAT_ATTR_TYPE == 16 ) {
+			if ( FileName != "." && FileName != "..") {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	friend hwlib::ostream & operator<< ( hwlib::ostream & stream, DirectoryEntry DE ) {
@@ -63,7 +72,7 @@ public:
 		stream << "   " << ( DE.UpdateDate & 0x1f ) << '-' << ( ( DE.UpdateDate & 0x1E0 ) >> 5 ) << '-' << ( ( ( DE.UpdateDate & 0xFE00 ) >> 9 ) + 1980 ) << " ";
 		stream << ( ( DE.UpdateTime & 0xF800 ) >> 11 ) << ':' << ( ( DE.UpdateTime & 0x7E0 ) >> 5 ) << ':' << ( DE.UpdateTime & 0x1f ) << " \t  ";
 		stream << ( DE.FileSize / 1024 ) << "KB" << " ";
-		stream << " (parent: " << DE.parentListingIndex << ")";
+		stream << " (parent: " << DE.parent << ")";
 		return stream;
 	}
 };

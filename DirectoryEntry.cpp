@@ -4,9 +4,9 @@
 
 DirectoryEntry::DirectoryEntry() {}
 
-DirectoryEntry::DirectoryEntry( uint8_t data[32], uint16_t parentListingIndex ) {
+DirectoryEntry::DirectoryEntry( uint8_t data[32], uint8_t parentListingIndex ) {
 	LFN = false;
-	parentListingIndex = parentListingIndex;
+	parent = parentListingIndex;
 	FileName = "";
 	FileName.append( data[0] );
 	FileName.append( data[1] );
@@ -31,9 +31,9 @@ DirectoryEntry::DirectoryEntry( uint8_t data[32], uint16_t parentListingIndex ) 
 	FileSize = ( data[31] << 24 ) + ( data[30] << 16 ) + ( data[29] << 8 ) + data[28];
 }
 
-DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn, uint16_t parentListingIndex ){
+DirectoryEntry::DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn, uint8_t parentListingIndex ){
 	LFN = true;
-	parentListingIndex = parentListingIndex;
+	parent = parentListingIndex;
 	FileName = lfn;
 	Extention = "";
 	Extention.append( data[8] );

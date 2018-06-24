@@ -23,8 +23,8 @@ int main() {
 	SDCard.generateDirectoryListing();
 	SDCard.printDirectoryListing();
 	for ( ;; ) {
-		hwlib::cout << "What folder or file would you like to open? (Select by typing the number to the left of the entry)" << hwlib::endl;
-		hwlib::cout << "CAUTION: by selecting a file, the file will be opened and printed." << hwlib::endl;
+		hwlib::cout << "\n\nWhat folder or file would you like to open? (Select by typing the number to the left of the entry or the '/' character for returning to the root)" << hwlib::endl;
+		hwlib::cout << "CAUTION: by selecting a file, the file will be opened and printed.\n" << hwlib::endl;
 		char temp;
 		uint16_t filenumber = 0;
 		do {
@@ -33,13 +33,18 @@ int main() {
 				hwlib::cout << "temp: " << temp;
 				filenumber += temp - '0';
 				hwlib::cout << " || temp after: " << filenumber << hwlib::endl;
+			} else if ( temp == '/' ) {
+				break;
 			}
 		} while ( temp != 13 );
-		if ( SDCard.filenumberIsADirectory( filenumber ) ) {
-			hwlib::cout << "Directory listing for directory number: " << filenumber << hwlib::endl;
-			SDCard.printDirectoryListing( filenumber );
+		if ( temp != '/' ) {
+			if ( SDCard.filenumberIsADirectory( filenumber ) ) {
+				SDCard.printDirectoryListing( filenumber );
+			} else {
+				SDCard.openAndPrintFile( filenumber );
+			}
 		} else {
-			hwlib::cout << "Will print soon" << hwlib::endl;
+			SDCard.printDirectoryListing( 0 );
 		}
 
 

@@ -112,8 +112,8 @@ public:
 	int init_card();
 	int getDirectoryListing( uint8_t filenumber = 0 );
 	void printTextFile( uint32_t address, uint32_t size );
-	void generateDirectoryListing( uint16_t parent = 0 );
-
+	void generateDirectoryListing( uint8_t parent = 0 );
+	void openAndPrintFile( uint8_t filenumber );
 	void printDirectoryListing( uint16_t ofDirectory = 0);
 	bool filenumberIsADirectory( uint16_t filenumber );
 };
