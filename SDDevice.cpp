@@ -108,7 +108,6 @@ void SDDevice::wait_bytes( uint_fast8_t wait_amount = 1 ) {
 	readBytes( wait_amount, true, nullptr );
 }
 
-
 void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 	std::array<uint8_t, 512> block;
 
@@ -127,8 +126,6 @@ void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 
 	hwlib::cout << "\n\n---------------------------------------END TEXT FILE---------------------------------------" << hwlib::endl;
 }
-
-
 
 int SDDevice::execute_command( SDDevice::SupportedCommands command, uint32_t arguments, bool isAcmd ) {
 
@@ -149,6 +146,7 @@ int SDDevice::execute_command( SDDevice::SupportedCommands command, uint32_t arg
 	wait_bytes( 1 );
 	return 0;
 }
+
 void SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
 	//reset block
 	for ( uint_fast16_t i = 0; i < 512; i++ ) {

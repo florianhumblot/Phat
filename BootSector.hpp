@@ -1,4 +1,8 @@
 #pragma once
+#ifndef PHAT_BOOTSECTOR_HPP
+#define PHAT_BOOTSECTOR_HPP
+
+
 #include "hwlib.hpp"
 class BootSector {
 private:
@@ -36,3 +40,4 @@ public:
 	~BootSector();
 };
 
+#endif // !PHAT_BOOTSECTORY_HPP

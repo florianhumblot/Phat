@@ -1,5 +1,6 @@
 #pragma once
-
+#ifndef PHAT_DirectoryEntry_HPP
+#define PHAT_DirectoryEntry_HPP
 #include "hwlib.hpp"
 class DirectoryEntry {
 private:
@@ -77,3 +78,4 @@ public:
 	}
 };
 
+#endif
