@@ -43,12 +43,7 @@ public:
 	}
 
 	bool isADirectory() {
-		if ( FAT_ATTR_TYPE == 16 ) {
-			if ( FileName != "." && FileName != "..") {
-				return true;
-			}
-		}
-		return false;
+		return FAT_ATTR_TYPE == 16;
 	}
 
 	friend hwlib::ostream & operator<< ( hwlib::ostream & stream, DirectoryEntry DE ) {

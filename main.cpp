@@ -21,6 +21,8 @@ int main() {
 
 	SDCard.init_card();
 	SDCard.generateDirectoryListing();
+	/*SDCard.printFullDirectoryListing();
+	return 0;*/
 	SDCard.printDirectoryListing();
 	for ( ;; ) {
 		hwlib::cout << "\n\nWhat folder or file would you like to open? (Select by typing the number to the left of the entry or the '/' character for returning to the root)" << hwlib::endl;

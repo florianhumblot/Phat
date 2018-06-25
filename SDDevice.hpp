@@ -115,6 +115,7 @@ public:
 	void openAndPrintFile( uint8_t filenumber );
 	void printDirectoryListing( uint16_t ofDirectory = 0);
 	bool filenumberIsADirectory( uint8_t filenumber );
+	void printFullDirectoryListing();
 };
 
 

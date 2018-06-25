@@ -309,23 +309,31 @@ void SDDevice::generateDirectoryListing( uint8_t parent ) {
 				// if the 11th byte has a value of 16, it is a directory, if it has a value of 32, it is a file.
 				// Both are considered files, so they're processed the same.
 				if ( block[( 32 * i ) + 11] == 16 || block[( 32 * i ) + 11] == 32 ) {
+
 					uint8_t data_[32];
 					for ( uint_fast8_t j = 0; j < 32; j++ ) {
 						data_[j] = block[( 32 * i ) + j];
 					}
 					if ( readingLFN ) {
 						readingLFN = false;
-						directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn, parent );
+						// Skip . and .. directories
+						if ( block[( 32 * i )] == 0x2E || ( block[( 32 * i ) + 1] == 0x2E && block[( 32 * i )] == 0x2E ) ) {
+							//nope
+						} else {
+							directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn, parent );
+							currentDirectoryIndex++;
+						}
 						lfn = "";
 					} else {
-						// Skip curDir 
+						// Skip . and .. directories
 						if ( block[( 32 * i )] == 0x2E || ( block[( 32 * i ) + 1] == 0x2E && block[( 32 * i )] == 0x2E ) ) {
 							//nope
 						} else {
 							directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, parent );
+							currentDirectoryIndex++;
 						}
 					}
-					currentDirectoryIndex++;
+					
 				}
 
 				// if the 11th byte has a value of 22, it is a system partition, no need to process it and so we skip it.
@@ -342,9 +350,17 @@ void SDDevice::generateDirectoryListing( uint8_t parent ) {
 	}
 
 	for ( uint_fast8_t i = parent + 1; i <= currentDirectoryIndex; i++ ) {
-		if ( directoryListing[i].isADirectory() ) {
+		//hwlib::cout << "cwd: " << directoryListing[i] << hwlib::endl;
+		if ( directoryListing[i].isADirectory() && directoryListing[i].getParentIndex() == parent) {
 			generateDirectoryListing( i );
 		}
+	}
+}
+
+void SDDevice::printFullDirectoryListing() {
+	directoryListing[0].print_table_headers();
+	for ( uint_fast8_t i = 0; i < currentDirectoryIndex; i++ ) {
+		hwlib::cout << directoryListing[i] << hwlib::endl;
 	}
 }
 
