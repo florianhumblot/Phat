@@ -350,7 +350,6 @@ void SDDevice::generateDirectoryListing( uint8_t parent ) {
 	}
 
 	for ( uint_fast8_t i = parent + 1; i <= currentDirectoryIndex; i++ ) {
-		//hwlib::cout << "cwd: " << directoryListing[i] << hwlib::endl;
 		if ( directoryListing[i].isADirectory() && directoryListing[i].getParentIndex() == parent) {
 			generateDirectoryListing( i );
 		}
