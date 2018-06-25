@@ -31,7 +31,7 @@ int main() {
 			hwlib::cin >> temp;
 			if ( ( temp >= 48 && temp <= 57 ) ) {
 				hwlib::cout << "temp: " << temp;
-				filenumber += temp - '0';
+				filenumber = (filenumber * 10) + (temp - '0');
 				hwlib::cout << " || temp after: " << filenumber << hwlib::endl;
 			} else if ( temp == '/' ) {
 				break;

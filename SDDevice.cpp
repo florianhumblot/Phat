@@ -101,7 +101,6 @@ int SDDevice::init_card() {
 	BPBinfo[14] = block[18];
 	BPBinfo[15] = block[17];
 	BPB = BootSector( BPBinfo, address );
-	hwlib::cout << "Got BPB: " << BPB << hwlib::endl;
 	return 0;
 }
 
@@ -179,8 +178,8 @@ void SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
 }
 
 void SDDevice::printBlock( std::array<uint8_t, 512>& block, uint32_t start_address ) {
-	for ( uint_fast16_t i = 0; i <= 496; i += 16 ) {
-		print_text( 16, block.begin() + ( start_address % 512 ), start_address );
+	for ( uint_fast8_t i = 0; i <= 496; i += 16 ) {
+		print_text( 16, block.begin() + i, start_address );
 		start_address += 0x10;
 	}
 }
@@ -283,89 +282,68 @@ void SDDevice::generateDirectoryListing( uint8_t parent ) {
 				 block[( 32 * i ) + 7] == 0x00
 				 ) {
 				finishedReading = true;
-				break;
-			}
-
-			// if the 11th byte has a value of 15, this is a long file name entry.
-			if ( block[( 32 * i ) + 11] == 15 ) {
-				readingLFN = true;
-				// Check the amount of LFN entries.
-				uint8_t AmountOfLFN = block[( 32 * i )] & 0x3F;
-
-				// Get each entry, from the last part back to where we are now in the cluster
-				for ( uint8_t j = AmountOfLFN - 1; j > 0; j-- ) {
-					// Get the first part of the (long) name
-					lfn.append( block[( 32 * ( i + j ) ) + 1] );
-					lfn.append( block[( 32 * ( i + j ) ) + 3] );
-					lfn.append( block[( 32 * ( i + j ) ) + 5] );
-					lfn.append( block[( 32 * ( i + j ) ) + 7] );
-					lfn.append( block[( 32 * ( i + j ) ) + 9] );
-					// Get the second part of the (long) name
-					lfn.append( block[( 32 * ( i + j ) ) + 14] );
-					lfn.append( block[( 32 * ( i + j ) ) + 16] );
-					lfn.append( block[( 32 * ( i + j ) ) + 18] );
-					lfn.append( block[( 32 * ( i + j ) ) + 20] );
-					lfn.append( block[( 32 * ( i + j ) ) + 22] );
-					lfn.append( block[( 32 * ( i + j ) ) + 24] );
-					// Get the last part of the (long) name
-					lfn.append( block[( 32 * ( i + j ) ) + 28] );
-					lfn.append( block[( 32 * ( i + j ) ) + 30] );
-
-				}
-				// Get our current entry, which is always the last part of the entries
-				// Get the first part of the (long) name
-				lfn.append( block[( 32 * i ) + 1] );
-				lfn.append( block[( 32 * i ) + 3] );
-				lfn.append( block[( 32 * i ) + 5] );
-				lfn.append( block[( 32 * i ) + 7] );
-				lfn.append( block[( 32 * i ) + 9] );
-				// Get the second part of the (long) name
-				lfn.append( block[( 32 * i ) + 14] );
-				lfn.append( block[( 32 * i ) + 16] );
-				lfn.append( block[( 32 * i ) + 18] );
-				lfn.append( block[( 32 * i ) + 20] );
-				lfn.append( block[( 32 * i ) + 22] );
-				lfn.append( block[( 32 * i ) + 24] );
-				// Get the last part of the (long) name
-				lfn.append( block[( 32 * i ) + 28] );
-				lfn.append( block[( 32 * i ) + 30] );
-
-				// Skip the LFN blocks we just processed;
-				i += AmountOfLFN - 1;
-			}
-			// if the 11th byte has a value of 16, it is a directory, if it has a value of 32, it is a file.
-			// Both are considered files, so they're processed the same.
-			if ( block[( 32 * i ) + 11] == 16 || block[( 32 * i ) + 11] == 32 ) {
-				uint8_t data_[32];
-				for ( uint_fast8_t j = 0; j < 32; j++ ) {
-					data_[j] = block[( 32 * i ) + j];
-				}
-				if ( readingLFN ) {
-					readingLFN = false;
-					directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn, parent );
-					lfn = "";
-				} else {
-					// Skip curDir 
-					if ( block[( 32 * i )] == 0x2E || ( block[( 32 * i ) + 1] == 0x2E && block[( 32 * i )] == 0x2E ) ) {
-						//nope
-					} else {
-						directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, parent );
-					}
-				}
-				currentDirectoryIndex++;
-			}
-			// if the 11th byte has a value of 22, it is a system partition, no need to process it and so we skip it.
-			else if ( block[( 32 * i ) + 11] == 22 ) {
-
 				readingLFN = false;
 				lfn = "";
+				break;
 			}
+			if ( block[( 32 * i )] != 0xE5 ) {
+				// if the 11th byte has a value of 15, this is a long file name entry.
+				if ( block[( 32 * i ) + 11] == 15 ) {
+					readingLFN = true;
+					// Check the amount of LFN entries.
+					uint8_t AmountOfLFN = block[( 32 * i )] & 0xF;
+					uint8_t byte_indices[13] = { 1, 3, 5, 7, 9, 14, 16, 18, 20, 22, 24, 28, 30 };
+					// Get each entry, from the last part back to where we are now in the cluster
+					for ( int8_t j = AmountOfLFN - 1; j >= 0; j-- ) {
+						for ( uint8_t b = 0; b < 13; b++ ) {
+							if ( block[( 32 * ( i + j ) + byte_indices[b] )] != 0xff ) {
+								lfn.append( block[( 32 * ( i + j ) ) + byte_indices[b]] );
+							} else {
+								break;
+							}
+						}
+					}
+
+
+					// Skip the LFN blocks we just processed;
+					i += AmountOfLFN;
+				}
+				// if the 11th byte has a value of 16, it is a directory, if it has a value of 32, it is a file.
+				// Both are considered files, so they're processed the same.
+				if ( block[( 32 * i ) + 11] == 16 || block[( 32 * i ) + 11] == 32 ) {
+					uint8_t data_[32];
+					for ( uint_fast8_t j = 0; j < 32; j++ ) {
+						data_[j] = block[( 32 * i ) + j];
+					}
+					if ( readingLFN ) {
+						readingLFN = false;
+						directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, lfn, parent );
+						lfn = "";
+					} else {
+						// Skip curDir 
+						if ( block[( 32 * i )] == 0x2E || ( block[( 32 * i ) + 1] == 0x2E && block[( 32 * i )] == 0x2E ) ) {
+							//nope
+						} else {
+							directoryListing[currentDirectoryIndex] = DirectoryEntry( data_, parent );
+						}
+					}
+					currentDirectoryIndex++;
+				}
+
+				// if the 11th byte has a value of 22, it is a system partition, no need to process it and so we skip it.
+				else if ( block[( 32 * i ) + 11] == 22 ) {
+
+					readingLFN = false;
+					lfn = "";
+				}
+			}
+
 		}
 		//We're done with the current block, go to the next.
 		address++;
 	}
 
-	for ( uint_fast8_t i = parent + 1; i < (uint8_t)(currentDirectoryIndex + 1); i++ ) {
+	for ( uint_fast8_t i = parent + 1; i <= currentDirectoryIndex; i++ ) {
 		if ( directoryListing[i].isADirectory() ) {
 			generateDirectoryListing( i );
 		}
@@ -389,6 +367,6 @@ void SDDevice::printDirectoryListing( uint16_t ofDirectory ) {
 	}
 }
 
-bool SDDevice::filenumberIsADirectory( uint16_t filenumber ) {
+bool SDDevice::filenumberIsADirectory( uint8_t filenumber ) {
 	return !directoryListing[filenumber].isFile();
 }

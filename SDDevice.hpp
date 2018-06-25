@@ -19,7 +19,7 @@ private:
 	hwlib::spi_bus_bit_banged_sclk_mosi_miso spi_bus;
 	MasterBootRecord MBR;
 	BootSector BPB;
-	uint8_t currentDirectoryIndex = 0;
+	uint8_t currentDirectoryIndex = 1;
 	std::array<uint8_t, 8> data;
 	uint8_t CRCTable[256];
 	std::array<DirectoryEntry, 100> directoryListing;
@@ -110,12 +110,11 @@ public:
 	SDDevice( hwlib::pin_out &MOSI, hwlib::pin_out &SS,
 			  hwlib::pin_out &SCLK, hwlib::pin_in &MISO );
 	int init_card();
-	int getDirectoryListing( uint8_t filenumber = 0 );
 	void printTextFile( uint32_t address, uint32_t size );
 	void generateDirectoryListing( uint8_t parent = 0 );
 	void openAndPrintFile( uint8_t filenumber );
 	void printDirectoryListing( uint16_t ofDirectory = 0);
-	bool filenumberIsADirectory( uint16_t filenumber );
+	bool filenumberIsADirectory( uint8_t filenumber );
 };
 
 
