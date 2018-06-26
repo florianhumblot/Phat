@@ -59,6 +59,3 @@ void DirectoryEntry::print_table_headers() {
 	hwlib::cout << "|- - - filesize - - -|";
 	hwlib::cout << hwlib::endl;
 }
-
-
-DirectoryEntry::~DirectoryEntry() {}

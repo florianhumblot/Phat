@@ -21,36 +21,54 @@ private:
 	uint16_t UpdateDate;
 	uint32_t FirstLogicalCluster;
 	uint32_t FileSize;
+	/// \brief Set to true if the file has a Long File Name or not.
 	bool LFN;
+	/// \brief FileNumbe index of the parent in directoryListing of SDDevice
 	uint8_t parent;
 
 public:
+	/// \brief Empty constructor
 	DirectoryEntry();
+	/// \brief Constructor for entries with a small (or standard) sized filename
 	DirectoryEntry( uint8_t data[32], uint8_t parentListingIndex = 0 );
+	/// \brief Constructor for entries with a long file name.
 	DirectoryEntry( uint8_t data[32], hwlib::string<0> & lfn, uint8_t parentListingIndex = 0 );
-	~DirectoryEntry();
+
+	/// \brief Gets the first logical cluster number of the entry.
+	/// \details this number is not usable on it's own, you need to call BootSector::GetFirstSectorForCluster() to get a block address on the SD card.
 	uint32_t getFirstLogicalCluster() {
 		return FirstLogicalCluster;
 	}
+	
+	/// \brief Getter for the filesize in bytes
 	uint32_t getFileSize() {
 		return FileSize;
 	}
+
+	/// \brief Checks whether this entry is a file or not
 	bool isFile() {
 		return FAT_ATTR_TYPE == 32;
 	}
 
+
+	/// \brief prints table headers
+	/// \details This function should be called before a cout of one or more directory entries to better understand what the data represents.
 	void print_table_headers();
+
+	/// \brief Gets the parent index
+	/// \details the index is the index of the parent entry in the SDDevice::directoryListing array
 	uint8_t getParentIndex() {
 		return parent;
 	}
-	bool isNotARealDir() {
-		return ( FileName == ".." || FileName == "." );
-	}
 
+	/// \brief Checks whether this entry is a directory or not
 	bool isADirectory() {
 		return FAT_ATTR_TYPE == 16;
 	}
 
+
+	/// \brief ostream operator for printing a directory entry.
+	/// \details formats some of the data and prints it in a readable format
 	friend hwlib::ostream & operator<< ( hwlib::ostream & stream, DirectoryEntry DE ) {
 		stream << hwlib::dec;
 		hwlib::string <22> Pad = "";
