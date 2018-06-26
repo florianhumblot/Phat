@@ -1,3 +1,6 @@
+///file Partition.hpp
+/// \brief Small data structure containing partition information
+/// \details this is currently just a data structure but has been put in a class for future extension.
 #ifndef PHAT_PARTITION_HPP
 #define PHAT_PARTITION_HPP
 #include "hwlib.hpp"
