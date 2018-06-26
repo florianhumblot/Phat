@@ -1,4 +1,9 @@
 #pragma once
+/// \file DirectoryEntry.hpp
+/// \brief Datastructure for storing directory entries
+/// \details
+/// This class contains all necessary information about a directory on a FAT32 system.
+
 #ifndef PHAT_DirectoryEntry_HPP
 #define PHAT_DirectoryEntry_HPP
 #include "hwlib.hpp"
