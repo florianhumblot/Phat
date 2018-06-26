@@ -10,3 +10,4 @@
 *.vcxproj
 /Debug
 /.vs
+/docs

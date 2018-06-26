@@ -118,7 +118,7 @@ void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 		for ( auto & i : block ) { i = 0; }
 		SS.set( false );
 		readBlock( block, address );
-		printBlock( block, address );
+		printBlock( block );
 		SS.set( true );
 		address++;
 	}
@@ -142,7 +142,7 @@ int SDDevice::execute_command( SDDevice::SupportedCommands command, uint32_t arg
 	if ( isAcmd ) {
 		execute_command( CMD_APP_CMD, 0x0, false );
 	}
-	spi_bus.write_and_read( hwlib::pin_out_dummy, 6, data_out, data.begin() );
+	spi_bus.write_and_read( hwlib::pin_out_dummy, 6, data_out, nullptr );
 	wait_bytes( 1 );
 	return 0;
 }
@@ -175,10 +175,9 @@ void SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
 	wait_bytes( 10 );
 }
 
-void SDDevice::printBlock( std::array<uint8_t, 512>& block, uint32_t start_address ) {
+void SDDevice::printBlock( std::array<uint8_t, 512>& block ) {
 	for ( uint_fast8_t i = 0; i <= 496; i += 16 ) {
-		print_text( 16, block.begin() + i, start_address );
-		start_address += 0x10;
+		print_text( 16, block.begin() + i );
 	}
 }
 
@@ -201,7 +200,7 @@ void SDDevice::readBytes( uint8_t amount, bool sendOnes, uint8_t *buffer ) {
 	spi_bus.write_and_read( hwlib::pin_out_dummy, amount, nullptr, buffer );
 }
 
-void SDDevice::print_binary( uint8_t size, uint8_t *data, bool command = false ) {
+void SDDevice::print_hex( uint8_t size, uint8_t *data, bool command = false ) {
 	if ( command ) {
 		hwlib::cout << hwlib::setw( 8 ) << hwlib::setfill( ' ' ) << "COMMAND(CMD" << hwlib::dec << +( data[0] & ~( 1UL << 6 ) ) << "): ";
 	} else {
@@ -225,7 +224,7 @@ void SDDevice::print_shifted_value( uint32_t arguments ) {
 	hwlib::cout << hwlib::setw( 2 ) << hwlib::setfill( '0' ) << hwlib::hex << +static_cast< uint8_t >( arguments ) << hwlib::endl << hwlib::endl;
 }
 
-void SDDevice::print_text( uint16_t size, uint8_t * data, uint32_t address ) {
+void SDDevice::print_text( uint16_t size, uint8_t * data) {
 	for ( uint_fast8_t j = 0; j < size; j++ ) {
 		if ( data[j] != 0x00 ) {
 			hwlib::cout << ( char ) data[j];
