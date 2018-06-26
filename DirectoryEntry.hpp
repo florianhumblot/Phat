@@ -1,8 +1,8 @@
-#pragma once
-/// \file DirectoryEntry.hpp
-/// \brief Datastructure for storing directory entries
+///file DirectoryEntry.hpp
+/// \brief Datastructure for storing directory entries.
 /// \details
 /// This class contains all necessary information about a directory on a FAT32 system.
+/// It parses a 16 byte directory entry on the  sd card.
 
 #ifndef PHAT_DirectoryEntry_HPP
 #define PHAT_DirectoryEntry_HPP

@@ -1,6 +1,3 @@
-//
-// Created by djrel on 5/26/2018.
-//
 ///file SDDevice.hpp
 /// \brief Interface to an SD Card.
 /// \details
