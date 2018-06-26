@@ -29,4 +29,3 @@ uint32_t BootSector::GetFirstSectorForCluster( uint32_t ClusterNumber ) {
 	return ( ( ClusterNumber - 2 ) * SectorsPerCluster ) + FirstDataSector;
 }
 
-BootSector ::~BootSector() {}
