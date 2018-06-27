@@ -8,10 +8,9 @@
 #define PHAT_DirectoryEntry_HPP
 #include "hwlib.hpp"
 class DirectoryEntry {
-private:
+protected:
 	hwlib::string<255> FileName;
-	hwlib::string<3> Extention;
-	uint8_t attributes;
+	hwlib::string<3> Extension;
 	uint8_t FAT_ATTR_TYPE;
 	uint8_t CreatedTime10ms;
 	uint16_t CreatedTime;
@@ -79,10 +78,10 @@ public:
 			}
 			stream << '/' << DE.FileName << Pad;
 		} else {
-			for ( int8_t i = 21; ( i - ( DE.FileName.length() + DE.Extention.length() ) ) > 0; i-- ) {
+			for ( int8_t i = 21; ( i - ( DE.FileName.length() + DE.Extension.length() ) ) > 0; i-- ) {
 				Pad.append( ' ' );
 			}
-			stream << '/' << DE.FileName << '.' << DE.Extention << Pad;
+			stream << '/' << DE.FileName << '.' << DE.Extension << Pad;
 		}
 
 		stream << ( ( DE.FAT_ATTR_TYPE == 32 ) ? "File  " : "Folder" ) << "\t\t   ";
