@@ -46,6 +46,8 @@ int main() {
 	Empty_MBR_test emptyMBR = Empty_MBR_test();
 	mbr.testMBR(test);
 	emptyMBR.testMBR(test);
+	/// end mbr test
+
 
 	/// test results
 	std::cout << "Amount of tests: " << +test.getTestCount() << std::endl;
