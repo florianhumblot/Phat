@@ -1,0 +1,16 @@
+Manual test for SDDevice:
+	- Format an SDHC card with a FAT32 format
+	- Copy the contents of testfolder to the SD card
+	- Plug-in the SD card to the arduino
+	- Run the program
+	- You should see a root directory listing consisting of these items (I've purposefully excluded timestamps as these aren't testable):
+		"/test folder" - Folder - 0KB 
+		"/TEST   .TXT" - File - 0KB
+	- You can navigate by entering the number shown to the left of the entry followed by pressing the enter key
+	- Which ever file you open or folder you open should list either, the contents if it's a file, or the listing if it's a directory
+	- You can press the '/' key to return to the root of the SD card
+
+Note:
+	- The order the files will appear in is not guaranteed as it will depend on the order your OS copied them to the card.
+	- You can delete a file, and while it will still be present on the sd card (you can check by using a HEX editor), it will no longer be shown
+	  As it will have the 0x5E flag set to indicate a deleted file
