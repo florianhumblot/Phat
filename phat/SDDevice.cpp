@@ -52,26 +52,26 @@ int SDDevice::init_card() {
 	for ( auto & i : data_ ) { i = 0; }
 	Partition Partitions[4];
 	uint8_t j = 0;
-	for ( uint_fast8_t i = 446; i < 462; i++ ) {
+	for ( uint_fast16_t i = 446; i < 462; i++ ) {
 		data_[j] = block[i];
 		j++;
 	}
 	Partitions[0] = Partition( data_ );
 	for ( auto & i : data_ ) { i = 0; }
 	j = 0;
-	for ( uint_fast8_t i = 462; i < 478; i++ ) {
+	for ( uint_fast16_t i = 462; i < 478; i++ ) {
 		data_[j] = block[i];
 	}
 	Partitions[1] = Partition( data_ );
 	for ( auto & i : data_ ) { i = 0; }
 	j = 0;
-	for ( uint_fast8_t i = 478; i < 494; i++ ) {
+	for ( uint_fast16_t i = 478; i < 494; i++ ) {
 		data_[j] = block[i];
 	}
 	Partitions[2] = Partition( data_ );
 	for ( auto & i : data_ ) { i = 0; }
 	j = 0;
-	for ( uint_fast8_t i = 494; i < 510; i++ ) {
+	for ( uint_fast16_t i = 494; i < 510; i++ ) {
 		data_[j] = block[i];
 	}
 	Partitions[3] = Partition( data_ );
