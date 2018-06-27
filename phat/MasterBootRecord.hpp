@@ -8,7 +8,7 @@
 #include "Partition.hpp"
 
 class MasterBootRecord {
-private:
+protected:
 	Partition partition_tables[4];
 	bool usableDrive = false;
 
