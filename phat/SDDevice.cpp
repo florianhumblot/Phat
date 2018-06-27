@@ -28,6 +28,7 @@ int SDDevice::init_card() {
 	readBytes( 8, true, buffer.begin() );
 	SS.set( true );
 	wait_bytes( 1 );
+	int timeout = 128;
 	do {
 		SS.set( false );
 		execute_command( CMD_APP_CMD, 0x0, false );
@@ -35,7 +36,12 @@ int SDDevice::init_card() {
 		execute_command( ACMD_SD_SEND_OP_COND, 0x40000000, false );
 		readBytes( 8, true, buffer.begin() );
 		SS.set( true );
-	} while ( buffer[0] != 0x0 );
+		timeout--;
+	} while ( buffer[0] != 0x0  && timeout > 0);
+	if ( timeout == 0 ) {
+		return -1;
+	}
+	timeout = 128;
 	SS.set( true );
 	execute_command( CMD_READ_OCR, 0x0000000, false );
 	readBytes( 8, true, buffer.begin() );
@@ -46,7 +52,10 @@ int SDDevice::init_card() {
 	std::array<uint8_t, 512> block = {};
 	uint32_t address = 0x00000000;
 	SS.set( false );
-	readBlock( block, address );
+	int status = readBlock( block, address );
+	if ( status == -1 ) {
+		return -1;
+	}
 	SS.set( true );
 	uint8_t data_[16];
 	for ( auto & i : data_ ) { i = 0; }
@@ -108,7 +117,7 @@ void SDDevice::wait_bytes( uint_fast8_t wait_amount = 1 ) {
 	readBytes( wait_amount, true, nullptr );
 }
 
-void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
+int SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 	std::array<uint8_t, 512> block;
 
 	hwlib::cout << "---------------------------------------START TEXT FILE---------------------------------------\n\n" << hwlib::endl;
@@ -117,7 +126,10 @@ void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 	for ( uint_fast16_t h = 0; h < ( ( size / 512 ) + 1 ); h++ ) {
 		for ( auto & i : block ) { i = 0; }
 		SS.set( false );
-		readBlock( block, address );
+		int status = readBlock( block, address );
+		if ( status == -1 ) {
+			return -1;
+		}
 		printBlock( block );
 		SS.set( true );
 		address++;
@@ -125,6 +137,7 @@ void SDDevice::printTextFile( uint32_t address, uint32_t size ) {
 
 
 	hwlib::cout << "\n\n---------------------------------------END TEXT FILE---------------------------------------" << hwlib::endl;
+	return 0;
 }
 
 int SDDevice::execute_command( SDDevice::SupportedCommands command, uint32_t arguments, bool isAcmd ) {
@@ -147,7 +160,8 @@ int SDDevice::execute_command( SDDevice::SupportedCommands command, uint32_t arg
 	return 0;
 }
 
-void SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
+int SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
+	int timeout = 128;
 	//reset block
 	for ( uint_fast16_t i = 0; i < 512; i++ ) {
 		block[i] = 0x00;
@@ -157,12 +171,19 @@ void SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
 	do {
 		// Wait for the command to be accepted
 		readBytes( 1, true, block.begin() );
-	} while ( block[0] != 0x00 );
-
+		timeout--;
+	} while ( block[0] != 0x00 && timeout > 0 );
+	if ( timeout == 0 ) {
+		return -1;
+	}
+	timeout = 128;
 	do {
 		// Wait for the transfer to begin, which is when we receive 0xFE
 		readBytes( 1, true, block.begin() );
-	} while ( block[0] != 0xFE );
+	} while ( block[0] != 0xFE && timeout > 0);
+	if ( timeout == 0 ) {
+		return -1;
+	}
 
 	for ( uint_fast16_t i = 0; i <= 496; i += 16 ) {
 		readBytes( 16, true, block.begin() + i );
@@ -173,6 +194,7 @@ void SDDevice::readBlock( std::array<uint8_t, 512>& block, uint32_t address ) {
 	readBytes( 2, true, CRC_BITS );
 	// And finish off by waiting 10 bytes.
 	wait_bytes( 10 );
+	return 0;
 }
 
 void SDDevice::printBlock( std::array<uint8_t, 512>& block ) {
@@ -249,7 +271,7 @@ void SDDevice::debug_block( uint16_t size, uint8_t * data ) {
 	hwlib::cout << hwlib::endl << hwlib::endl;
 }
 
-void SDDevice::generateDirectoryListing( uint8_t parent ) {
+int SDDevice::generateDirectoryListing( uint8_t parent ) {
 	std::array<uint8_t, 512> block;
 	uint32_t address = 0x00;
 	hwlib::string <255> lfn = "";
@@ -264,9 +286,11 @@ void SDDevice::generateDirectoryListing( uint8_t parent ) {
 
 	while ( finishedReading == false && currentDirectoryIndex <= 100 ) {
 		SS.set( false );
-		readBlock( block, address );
+		int status = readBlock( block, address );
 		SS.set( true );
-
+		if ( status == -1 ) {
+			return -1;
+		}
 		for ( uint_fast8_t i = 0; i < 16; i++ ) {
 			// Check if the next 8 bytes are 0, if they are, the cluster contains no more data.
 			if ( block[( 32 * i )] == 0x00 &&
@@ -350,9 +374,13 @@ void SDDevice::generateDirectoryListing( uint8_t parent ) {
 
 	for ( uint_fast8_t i = parent + 1; i <= currentDirectoryIndex; i++ ) {
 		if ( directoryListing[i].isADirectory() && directoryListing[i].getParentIndex() == parent) {
-			generateDirectoryListing( i );
+			int status = generateDirectoryListing( i );
+			if ( status == -1 ) {
+				return -1;
+			}
 		}
 	}
+	return 0;
 }
 
 void SDDevice::printFullDirectoryListing() {
@@ -362,12 +390,16 @@ void SDDevice::printFullDirectoryListing() {
 	}
 }
 
-void SDDevice::openAndPrintFile( uint8_t filenumber ) {
+int SDDevice::openAndPrintFile( uint8_t filenumber ) {
 	if ( directoryListing[filenumber].isFile() ) {
-		printTextFile( BPB.GetFirstSectorForCluster( directoryListing[filenumber].getFirstLogicalCluster() ), directoryListing[filenumber].getFileSize() );
+		int status = printTextFile( BPB.GetFirstSectorForCluster( directoryListing[filenumber].getFirstLogicalCluster() ), directoryListing[filenumber].getFileSize() );
+		if ( status == -1 ) {
+			return -1;
+		}
 	} else {
 		hwlib::cout << "Not a file, can't print this.";
 	}
+	return 0;
 }
 
 void SDDevice::printDirectoryListing( uint16_t ofDirectory ) {

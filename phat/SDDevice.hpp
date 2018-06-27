@@ -134,7 +134,7 @@ private:
 	/// Empties the block by setting all values to 0, and then sends the command needed to start a block read.
 	/// This will wait for the response token indicating that the command was accepting, and will then wait for the start transaction token (0xFE)
 	/// Once it receives the token, it will fill the block array with the block data.
-	void readBlock( std::array<uint8_t, 512> & block, uint32_t address );
+	int readBlock( std::array<uint8_t, 512> & block, uint32_t address );
 	
 	/// \brief Print a block in chuncks of 16 bytes.
 	/// This function calls the print_text() function with chunks of 16 bytes of data.
@@ -173,18 +173,18 @@ public:
 	/// \brief prints a text file of size n. 
 	/// \details
 	/// This will read a file starting at a specified address for n bytes.
-	void printTextFile( uint32_t address, uint32_t size );
+	int printTextFile( uint32_t address, uint32_t size );
 
 	/// \brief Generates the directory listing by recusively looking through the directories and then looking in each directory it finds.
 	/// \details
 	/// This populates the directoryListing array with directory entries, this keeps track of their address, size, and miscellaneous information such as timestamps describing created and access times
-	void generateDirectoryListing( uint8_t parent = 0 );
+	int generateDirectoryListing( uint8_t parent = 0 );
 
 	/// \brief Opens and prints a textfile
 	/// \details
 	/// This will check if the given entry in the directoryListing is a file, and if so will open it and print it's contents.
 	/// If the entry at the given index is not a file, it will print an error message.
-	void openAndPrintFile( uint8_t filenumber );
+	int openAndPrintFile( uint8_t filenumber );
 
 	/// \brief Prints the directory listing of a given directory, defaults to the root dir of the card.
 	/// \details

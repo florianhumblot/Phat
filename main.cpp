@@ -19,8 +19,15 @@ int main() {
 	hwlib::wait_ms( 500 );
 	SDDevice SDCard( MOSI, SS, SCLK, MISO );
 
-	SDCard.init_card();
-	SDCard.generateDirectoryListing();
+	int status = SDCard.init_card();
+	if ( status == -1 ) {
+		hwlib::cout << "Initialization failed, try again" << hwlib::endl;
+		return 0;
+	}
+	status = SDCard.generateDirectoryListing();
+	if ( status == -1 ) {
+		hwlib::cout << "The generation of the directory listing failed, try again" << hwlib::endl;
+	}
 	SDCard.printDirectoryListing();
 	for ( ;; ) {
 		hwlib::cout << "\n\nWhat folder or file would you like to open? (Select by typing the number to the left of the entry or the '/' character for returning to the root)" << hwlib::endl;
@@ -41,7 +48,11 @@ int main() {
 			if ( SDCard.filenumberIsADirectory( filenumber ) ) {
 				SDCard.printDirectoryListing( filenumber );
 			} else {
-				SDCard.openAndPrintFile( filenumber );
+				status = SDCard.openAndPrintFile( filenumber );
+				if ( status == -1 ) {
+					hwlib::cout << "Reading the file failed, try again" << hwlib::endl;
+					return 0;
+				}
 			}
 		} else {
 			SDCard.printDirectoryListing( 0 );
