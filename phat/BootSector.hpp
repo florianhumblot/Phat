@@ -8,8 +8,9 @@
 
 
 #include "hwlib.hpp"
+
 class BootSector {
-private:
+protected:
 	uint16_t BytesPerSector;
 	uint8_t SectorsPerCluster;
 	uint16_t ReserverdSectorCount;
@@ -45,6 +46,8 @@ public:
 		stream << "RootEntryCount: " << +BPB.RootEntryCount << "\n";
 		stream << "FirstDataSector: " << +BPB.FirstDataSector << "\n";
 		stream << "RootDirSectors: " << +BPB.RootDirSectors << "\n";
+		stream << "FatTablesAddress: " << +BPB.FatTablesAddress << "\n";
+		stream << "PartitionStart: " << +BPB.PartitionStart << "\n";
 		return stream;
 	}
 
