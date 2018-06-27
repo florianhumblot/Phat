@@ -13,6 +13,12 @@ public:
 	std::vector<std::vector<uint32_t>> test;
 	TestSuite() {}
 
+	// Function from StackOverflow - https://stackoverflow.com/questions/11421432/how-can-i-output-the-value-of-an-enum-class-in-c11
+	template <typename Enumeration>
+	auto as_integer( Enumeration const value )
+		-> typename std::underlying_type<Enumeration>::type {
+		return static_cast<typename std::underlying_type<Enumeration>::type>( value );
+	}
 	template <typename T >
 	bool assertEquals( T lhs, T rhs, std::string name = "unknown" ) {
 		i++;
