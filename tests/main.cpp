@@ -2,6 +2,7 @@
 #include "hwlib.hpp"
 #include "BootSector_test.cpp"
 #include "DirectoryEntry_test.cpp"
+#include "Partition_test.cpp"
 #include <iostream>
 #include <bitset>
 #include "main.h"
@@ -24,6 +25,11 @@ int main() {
 
 	sfn.testDirectoryEntry( test );
 	lfnDir.testLFNDirectoryEntry( test );
+
+	uint8_t partition_data[16] = { 0x00, 0x82, 0x03, 0x00, 0x0C, 0xFE, 0x7F, 0xE1, 0x00, 0x20, 0x00, 0x00, 0x00, 0x0C, 0x76, 0x00 };
+	Partition_test partition = Partition_test( partition_data );
+
+	partition.testPartition( test );
 
 	std::cout << "Amount of tests: " << +test.getTestCount() << std::endl;
 	std::cout << "Tests Passed: " << +test.getPassedTests() << std::endl;

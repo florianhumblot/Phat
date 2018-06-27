@@ -6,7 +6,7 @@
 #include "hwlib.hpp"
 
 class Partition {
-private:
+protected:
 	enum class BootIndicator : bool {
 		NOBOOT = 0,
 		BOOT = 1
