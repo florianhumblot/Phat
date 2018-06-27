@@ -1,5 +1,5 @@
 #include "hwlib.hpp"
-#include "SDDevice.hpp"
+#include "phat/SDDevice.hpp"
 
 int main() {
 	// kill the watchdog (ATSAM3X8E specific)

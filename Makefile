@@ -15,7 +15,7 @@ SOURCES := SDDevice.cpp Partition.cpp MasterBootRecord.cpp BootSector.cpp Direct
 HEADERS := SDDevice.hpp Partition.hpp MasterBootRecord.hpp BootSector.hpp DirectoryEntry.hpp
 
 # other places to look for files for this project
-SEARCH  := 
+SEARCH  := ./phat
 
 # set RELATIVE to the next higher directory 
 # and defer to the appropriate Makefile.* there
