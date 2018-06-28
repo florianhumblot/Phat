@@ -7,6 +7,9 @@
  *  Phat runs on an Arduino Due, but should work on other devices as long as the pins used inherit from hwlib::pin_out and hwlib::pin_in and are passed by reference to SDDevice.cpp 
  *  Warning: this has not been tested.
  *  
+ *	\section Documentation
+ *  You can find more information about the inner workings of the SD card in SPI mode in chapter 7 of the Simplified Physical Layer Specification from the SD association https://www.sdcard.org/downloads/pls/index.html
+ * 
  *  
  *  \section Limitations
  *  The library currently only supports the simulation of the linux `ls`, `cd` and `cat` commands.
