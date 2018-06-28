@@ -1,0 +1,22 @@
+/*! \mainpage Phat
+ *  
+ *  \section Introduction
+ *  Phat is a small FAT32 reading library. It currently only supports reading from FAT32 formatted SD cards
+ *  
+ *  \section Hardware
+ *  Phat runs on an Arduino Due, but should work on other devices as long as the pins used inherit from hwlib::pin_out and hwlib::pin_in and are passed by reference to SDDevice.cpp 
+ *  Warning: this has not been tested.
+ *  
+ *  
+ *  \section Limitations
+ *  The library currently only supports the simulation of the linux `ls`, `cd` and `cat` commands.
+ *  It is also only possible to read directory listings and print file contents, due to memory limitations, there is currently no way to get the file as a stream.
+ *  There is also a limit to the amount of "directory entries" that can be retrieved, it is currently set to 100. 
+ *  
+ *  \section Usage
+ *  Add the source code directory (phat) to your project, and include the header files.
+ *  Do not forget to add the files to your Makefile!
+ * 
+ *  \section Poster
+ *  \image html posterflo_nopsedit.png width=1000px height=600px
+ */ 
