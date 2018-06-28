@@ -1,3 +1,14 @@
+// ==========================================================================
+//
+// File      : BootSector_test.cpp
+// Part of   : Phat - FAT32 reader - TestSuite
+// Copyright : Florian Humblot - me@florianhumblot.com 2018
+//
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at 
+// http://www.boost.org/LICENSE_1_0.txt)
+//
+// ==========================================================================
 #ifndef BPB_TEST
 #define BPB_TEST
 #include "test.hpp"

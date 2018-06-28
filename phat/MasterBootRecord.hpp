@@ -1,3 +1,16 @@
+// ==========================================================================
+//
+// File      : MasterBootRecord.hpp
+// Part of   : Phat - FAT32 reader
+// Copyright : Florian Humblot - me@florianhumblot.com 2018
+//
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at 
+// http://www.boost.org/LICENSE_1_0.txt)
+//
+// ==========================================================================
+
+// this file contains Doxygen lines
 ///file MasterBootRecord.hpp
 /// \brief Data structure containing the Master Boot record.
 /// \details This contains the 4 partition tables that can be found on an SD card formatted with FAT32.
